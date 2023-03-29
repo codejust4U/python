@@ -1,0 +1,10 @@
+n = int(input("Enter the number: "))
+for i in range(2,n):
+    p=0
+    j=1
+    while j<=i:
+        if i%j == 0:
+            p = p+1
+        j += 1
+    if p==2:
+        print(i)
