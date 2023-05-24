@@ -120,21 +120,38 @@ matrix3 = np.array([
 matrix4 = np.array([12,45])
 linear_equations = np.linalg.solve(matrix3,matrix4)
 print(linear_equations)
-print("------------------------------------------------------------------------------")
+print("-----------------------------------------------------------------------------")
+
+
 
 """
-numpy.linalg.lstsq() : Return the least-squares solution to a linear matrix equation.Solves the equation a x = b by computing a vector x that minimizes the Euclidean 2-norm || b – a x ||^2. The equation may be under-, well-, or over- determined (i.e., the number of linearly independent rows of a can be less than, equal to, or greater than its number of linearly independent columns). If a is square and of full rank, then x (but for round-off error) is the “exact” solution of the equation.
+Special Functions
+numpy.linalg.det() : Compute the determinant of an array.
 """
 
-import matplotlib.pyplot as plt
- 
-side1 = np.arange(0,9)
-array1 = np.array([side1, np.ones(9)])
-# linearly generated sequence
-sequence = [19, 20, 20.5, 21.5, 22, 23, 23, 25.5, 24]
-# obtaining the parameters of regression line
-prev_line = np.linalg.lstsq(array1.T, sequence)[0]
-line = prev_line[0] * side1 + prev_line[1]  #regression line
-plt.plot(side1, line,'r-')
-plt.plot(side1, sequence, 'o')
-plt.show()
+print("--------------------------Special functions--------------------------")
+array2 = np.array([
+    [6,1,1],
+    [4,-2,5],
+    [2,8,7]
+])
+#[3,5,7]
+#[2,8,9]
+#[9,1,6]
+new_det = np.linalg.det(array2)
+print(new_det)
+print("-----------------------------------------------------------------------------")
+
+"""
+numpy.trace() : Return the sum along diagonals of the array.If a is 2-D, the sum along its diagonal with the given offset is returned, i.e., the sum of elements a[i,i+offset] for all i.If a has more than two dimensions, then the axes specified by axis1 and axis2 are used to determine the 2-D sub-arrays whose traces are returned. The shape of the resulting array is the same as that of a with axis1 and axis2 removed.
+"""
+print("--------------------------trace()----------------------------------------")
+array3 = np.array([
+    [2,8,5],
+    [6,1,1],
+    [7,4,2]
+])
+
+trace2 = np.trace(array3)
+print(trace2)
+print("-----------------------------------------------------------------------------")
