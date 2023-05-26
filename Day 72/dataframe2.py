@@ -55,3 +55,37 @@ serial_data3 = pd.Series(dataframe3['first_name'])
 limit = serial_data3.head(10)
 print(limit)
 print("-------------------------------------------------------------------------------")
+
+"""
+By default, the index of the series starts from 0 till the length of series -1.
+
+Creating a series from array with an index: In order to create a series by explicitly proving index instead of the default, we have to provide a list of elements to the index parameter with the same number of elements as it is an array. 
+"""
+print("---------------------------------Changing the index-----------------------------------")
+dataframe3 = np.array(['p','a','n','k','a','j'])
+
+serial_data4 = pd.Series(dataframe3,index=[21,22,23,24,25,26])
+print(serial_data4)
+print("-------------------------------------------------------------------------------")
+
+"""
+Creating a series using NumPy functions : In order to create a series using numpy function, we can use different function of numpy like numpy.linspace(), numpy.random.radn(). 
+"""
+print("---------------------------------Creating a series-----------------------------------")
+serial_data5 = pd.Series(np.linspace(1,11,3))
+print(serial_data5)
+print("-------------------------------------------------------------------------------\n")
+serial_data6 = pd.Series(np.linspace(0,50,10))
+print(serial_data6)
+print("-------------------------------------------------------------------------------")
+
+print("----------------------------Creating a series with index in alphabet--------------------------")
+serial_data7=pd.Series(range(1,40,6), index=[x for x in 'abcdefg'])
+print(serial_data7)
+print("-------------------------------------------------------------------------------")
+
+
+serial_data8=np.arange(11,16)
+serobj=pd.Series(data=serial_data8*8,index=serial_data8)
+print(serobj)
+print("-------------------------------------------------------------------------------")
