@@ -1,0 +1,31 @@
+graph = {
+    'A': ['B', 'C'],
+    'B': ['D', 'E'],
+    'C': ['F', 'G'],
+    'D': ['H', 'I'],
+    'F': ['J', 'K'],
+    'H' : [],
+    'I' : [],
+    'E': [],
+    'G': [],
+    'J': [],
+    'K': []
+}
+
+visited = []
+queue = []
+
+def breadth_first_search(visited, graph, node):
+    visited.append(node)
+    queue.append(node)
+
+    while queue:
+        pick_out = queue.pop(0)
+        print(pick_out, end=" ")
+        for successor_element in graph[pick_out]:
+            if successor_element not in visited:
+                queue.append(successor_element)
+                visited.append(successor_element)
+
+node_u_want = str(input("Enter the node value: "))
+breadth_first_search(visited, graph, node_u_want)
