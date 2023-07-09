@@ -1,60 +1,49 @@
- 
-import numpy as np 
-import matplotlib.pyplot as plt
-import pandas as pd  
-  
-# Importing the dataset  
-dataset = pd.read_csv(r'D:\copy of htdocs\practice\Python\200days\Day113 NVC\archive\\User_data.csv')  
-x = dataset.iloc[:, [2, 3]].values  
-y = dataset.iloc[:, 4].values  
-  
-# Splitting the dataset into the Training set and Test set  
-from sklearn.model_selection import train_test_split  
-x_train, x_test, y_train, y_test = train_test_split(x, y, test_size = 0.25, random_state = 0)  
-  
-# Feature Scaling  
-from sklearn.preprocessing import StandardScaler  
-sc = StandardScaler()  
-x_train = sc.fit_transform(x_train)  
-x_test = sc.transform(x_test)  
-
-from sklearn.naive_bayes import GaussianNB
-classifier = GaussianNB()
-classifier.fit(x_train,y_train)
-
-y_pred = classifier.predict(x_test)
-
+import pandas as pd
+import numpy as np
+import nltk
+from nltk.stem import PorterStemmer
+from sklearn.feature_extraction.text import CountVectorizer
+from nltk.corpus import stopwords
+from sklearn.feature_extraction.text import TfidfTransformer
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.metrics import confusion_matrix
-cm = confusion_matrix(y_test,y_pred)
 
-from matplotlib.colors import ListedColormap
-
-x_set, y_set = x_train, y_train
-
-X1, X2 = np.meshgrid(np.arange(start=x_set[:, 0].min() - 1, stop=x_set[:, 0].max() + 1, step=0.01),
-                     np.arange(start=x_set[:, 1].min() - 1, stop=x_set[:, 1].max() + 1, step=0.01))
-
-plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),
-             alpha=0.75, cmap=ListedColormap(('red', 'blue')))
-
-plt.xlim(X1.min(), X1.max())
-plt.ylim(X2.min(), X2.max())
-
-for i, j in enumerate(np.unique(y_set)):
-    plt.scatter(x_set[y_set == j, 0], x_set[y_set == j, 1],
-                c=ListedColormap(('red', 'blue'))(i), label=j)
+df = pd.read_table('SMSSpamCollection', sep='\t', header=None, names=['label', 'message'])
 
 
+df['label'] = df.label.map({'ham':0,'spam':1})
 
-# Visualising the Test set results  
-from matplotlib.colors import ListedColormap  
-x_set, y_set = x_test, y_test  
-X1, X2 = np.meshgrid(np.arange(start = x_set[:, 0].min() - 1, stop = x_set[:, 0].max() + 1, step = 0.01),  
-                     np.arange(start = x_set[:, 1].min() - 1, stop = x_set[:, 1].max() + 1, step = 0.01))  
-plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).reshape(X1.shape),  
-             alpha = 0.75, cmap = ListedColormap(('red', 'blue')))  
-plt.xlim(X1.min(), X1.max())  
-plt.ylim(X2.min(), X2.max())  
-for i, j in enumerate(np.unique(y_set)):  
-    plt.scatter(x_set[y_set == j, 0], x_set[y_set == j, 1],  
-                c = ListedColormap(('red', 'blue'))(i), label = j)  
+df['message'] = df.message.map(lambda x:x.lower())
+
+df['message'] = df.message.str.replace('[^\w\s]', '')
+
+nltk.download()
+df['message'] = df['message'].apply(nltk.word_tokenize)
+
+stemmer = PorterStemmer()
+df['message'] = df['message'].apply(lambda x: [stemmer.stem(y) for y in x])
+
+# list of words into sapce separeated
+df['message'] = df['message'].apply(lambda x: ' '.join(x))
+
+count_vect = CountVectorizer()
+counts = count_vect.fit_transform(df['message'])
+
+transformer = TfidfTransformer().fit(counts)
+
+counts = transformer.transform(counts)
+
+
+X_train, X_test, y_train, y_test = train_test_split(counts, df['label'], test_size=0.1, random_state=69)
+
+
+model = MultinomialNB().fit(X_train,y_train)
+
+predicted = model.predict(X_test)
+
+print(np.mean(predicted == y_test))
+
+print(confusion_matrix(y_test,predicted))
+
+print("as we can see the amount of erros in legitimate is completely filtered where there is no legitimate messages that is classified as spam but in spam side, there's huge number of spam messages that is classified as legitimate which is decreasing the accuracy of the modela and it is not completely the fault of trainded model, but somewhere the datas which we have.")
