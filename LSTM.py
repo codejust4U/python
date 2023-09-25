@@ -1,86 +1,98 @@
 # Long Short Term Memory
 
-import random
+import pandas as pd
+import matplotlib.pyplot as plt
+import tensorflow as tf
 import numpy as np
-import math
-def sigmoid(x): 
-    return 1. / (1 + np.exp(-x))
-def sigmoid_derivative(values): 
-    return values*(1-values)
-def tanh_derivative(values): 
-    return 1. - values ** 2
-# createst uniform random array w/ values in [a,b) and shape args
-def rand_arr(a, b, *args): 
-    np.random.seed(0)
-    return np.random.rand(*args) * (b - a) + a
+
+df = pd.read_csv(r"D:\copy of htdocs\practice\Python\200days\Day199 Deep Learning Day 29\airline-passengers.csv")
+
+print(df.shape)
+
+df =  df['Passengers']
+
+plt.plot(df)
+plt.show()
+
+tf.random.set_seed(7001)
 
 
-
-#-------------------------------------
-
-class LstmParam:
-    def __init__(self, mem_cell_ct, x_dim):
-        self.mem_cell_ct = mem_cell_ct
-        self.x_dim = x_dim
-        concat_len = x_dim + mem_cell_ct
-        # weight matrices
-        self.wg = rand_arr(-0.1, 0.1, mem_cell_ct, concat_len)
-        self.wi = rand_arr(-0.1, 0.1, mem_cell_ct, concat_len) 
-        self.wf = rand_arr(-0.1, 0.1, mem_cell_ct, concat_len)
-        self.wo = rand_arr(-0.1, 0.1, mem_cell_ct, concat_len)
-        # bias terms
-        self.bg = rand_arr(-0.1, 0.1, mem_cell_ct) 
-        self.bi = rand_arr(-0.1, 0.1, mem_cell_ct) 
-        self.bf = rand_arr(-0.1, 0.1, mem_cell_ct) 
-        self.bo = rand_arr(-0.1, 0.1, mem_cell_ct) 
-        # diffs (derivative of loss function w.r.t. all parameters)
-        self.wg_diff = np.zeros((mem_cell_ct, concat_len)) 
-        self.wi_diff = np.zeros((mem_cell_ct, concat_len)) 
-        self.wf_diff = np.zeros((mem_cell_ct, concat_len)) 
-        self.wo_diff = np.zeros((mem_cell_ct, concat_len)) 
-        self.bg_diff = np.zeros(mem_cell_ct) 
-        self.bi_diff = np.zeros(mem_cell_ct) 
-        self.bf_diff = np.zeros(mem_cell_ct) 
-        self.bo_diff = np.zeros(mem_cell_ct)
+df = df.values
+df = df.astype('float')
 
 
+from sklearn.preprocessing import MinMaxScaler
+
+scaler = MinMaxScaler(feature_range=(0,1))
+
+from sklearn.preprocessing import StandardScaler
+
+# Assuming df is a one-dimensional array
+df = df.reshape(-1, 1)
+
+scaler = StandardScaler()
+df_scaled = scaler.fit_transform(df)
 
 
-#-------------------------------------
+train_size = int(len(df)*0.67)
+test_size = len(df) - train_size
+
+train,test = df[0:train_size,:],df[train_size:len(df),:1]
 
 
+def cr_df(df,look_back=1):
+    dfX, dfY = [],[]
 
-#stacking x(present input xt) and h(t-1)
-xc = np.hstack((x,  h_prev))
-#dot product of Wf(forget weight matrix and xc +bias)
-self.state.f = sigmoid(np.dot(self.param.wf, xc) + self.param.bf)
-#finally multiplying forget_gate(self.state.f) with previous cell state(s_prev) 
-#to get present state.
-self.state.s = self.state.g * self.state.i + s_prev * self.state.f
-
-
-#-------------------------------------
+    for i in range(len(df)-look_back-1):
+        a = df[i:(i+look_back),0]
+        dfX.append(a)
+        dfY.append(df[i+look_back,0])
+    return np.array(dfX),np.array(dfY)
 
 
-#xc already calculated above
-self.state.i = sigmoid(np.dot(self.param.wi, xc) + self.param.bi)
-#C(t)
-self.state.g = np.tanh(np.dot(self.param.wg, xc) + self.param.bg)
+look_back = 1
+trainX, trainY = cr_df(train, look_back)
+testX, testY = cr_df(test,look_back)
+
+trainX = np.reshape(trainX,(trainX.shape[0],1,trainX.shape[1]))
+
+testX = np.reshape(testX,(testX.shape[0],1,testX.shape[1]))
+
+from keras.models import Sequential
+from keras.layers import Dense, LSTM
+
+model = Sequential()
+
+model.add(LSTM(4,input_shape=(1,look_back)))
+model.add(Dense(1))
 
 
-#-------------------------------------
+model.compile(loss='mean_squared_error', optimizer='adam')
+model.fit(trainX,trainY, epochs=10,batch_size=1,verbose=2)
 
 
+trainPredict = model.predict(trainX)
+testPredict = model.predict(testX)
 
-#to calculate the present state
-self.state.s = self.state.g * self.state.i + s_prev * self.state.f
+
+trainPredict = scaler.inverse_transform(trainPredict)
+trainY = scaler.inverse_transform([trainY])
+
+testPredict =  scaler.inverse_transform(testPredict)
+testY = scaler.inverse_transform([testY])
+
+from sklearn.metrics import mean_squared_error
+
+trainscore = np.sqrt(mean_squared_error(trainY[0], trainPredict[:,0]))
+
+print("Train score : %.2f RMSE"%(trainscore))
+
+testscore = np.sqrt(mean_squared_error(testY[0], testPredict[:,0]))
+
+print("Train score : %.2f RMSE"%(testscore))
 
 
-#-------------------------------------
-
-#to calculate the output state
-self.state.o = sigmoid(np.dot(self.param.wo, xc) + self.param.bo)
-#output state h
-self.state.h = self.state.s * self.state.o
+plt.plot(df,color='blue')
+plt.plot(testPredict,color='orange')
 
 
